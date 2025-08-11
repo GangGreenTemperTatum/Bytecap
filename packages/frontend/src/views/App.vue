@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import Button from "primevue/button";
-import Slider from "primevue/slider";
-import Checkbox from "primevue/checkbox";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import Card from "primevue/card";
-import Message from "primevue/message";
+import Checkbox from "primevue/checkbox";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
-import { ref, computed, onMounted } from "vue";
+import Message from "primevue/message";
+import Slider from "primevue/slider";
+import { computed, onMounted, ref } from "vue";
 
 import { useSDK } from "@/plugins/sdk";
 
@@ -35,22 +35,34 @@ const thresholdMB = ref(10);
 const enableWarnings = ref(true);
 const warningAt75Percent = ref(true);
 const warningAt90Percent = ref(true);
-const workspaceFiles = ref<DirectoryInfo>({ 
-  files: [], 
-  totalSize: 0, 
-  totalSizeFormatted: "0 B", 
+const workspaceFiles = ref<DirectoryInfo>({
+  files: [],
+  totalSize: 0,
+  totalSizeFormatted: "0 B",
   scanPath: "",
   caidoFiles: [],
   caidoTotalSize: 0,
-  caidoTotalSizeFormatted: "0 B"
+  caidoTotalSizeFormatted: "0 B",
 });
 const alerts = ref<string[]>([]);
 const warnings = ref<string[]>([]);
 const isLoading = ref(false);
-const flashBanner = ref<{ type: "error" | "warning", message: string } | null>(null);
-const scanSummary = ref<{ fileCount: number, caidoFileCount: number, totalSize: string, caidoTotalSize: string } | null>(null);
+const flashBanner = ref<
+  { type: "error" | "warning"; message: string } | undefined
+>(undefined);
+const scanSummary = ref<
+  | {
+      fileCount: number;
+      caidoFileCount: number;
+      totalSize: string;
+      caidoTotalSize: string;
+    }
+  | undefined
+>(undefined);
 const ignoredAlerts = ref<Set<string>>(new Set());
-const alertCounters = ref<Map<string, { count: number, intervalId?: ReturnType<typeof setInterval> }>>(new Map());
+const alertCounters = ref<
+  Map<string, { count: number; intervalId?: ReturnType<typeof setInterval> }>
+>(new Map());
 
 // Computed properties
 const warningPercentages = computed(() => {
@@ -68,7 +80,9 @@ const loadWorkspaceFiles = async (path?: string) => {
 
     // Check if no files were found and show alert
     if (workspaceFiles.value.files.length === 0) {
-      alerts.value = [`No files found in default project directory: ${workspaceFiles.value.scanPath}`];
+      alerts.value = [
+        `No files found in default project directory: ${workspaceFiles.value.scanPath}`,
+      ];
     } else {
       alerts.value = []; // Clear any previous alerts
     }
@@ -83,13 +97,12 @@ const loadWorkspaceFiles = async (path?: string) => {
       scanPath: "error",
       caidoFiles: [],
       caidoTotalSize: 0,
-      caidoTotalSizeFormatted: "0 B"
+      caidoTotalSizeFormatted: "0 B",
     };
   } finally {
     isLoading.value = false;
   }
 };
-
 
 // Check file size thresholds
 const checkThresholds = async () => {
@@ -98,7 +111,7 @@ const checkThresholds = async () => {
       workspaceFiles.value,
       thresholdMB.value,
       enableWarnings.value,
-      warningPercentages.value
+      warningPercentages.value,
     );
     alerts.value = result.alerts;
     warnings.value = result.warnings;
@@ -116,14 +129,14 @@ const onRefreshClick = async () => {
 const applySettings = async () => {
   // Clear any existing notifications first
   clearAllNotifications();
-  
+
   // Now check thresholds with new settings
   await checkThresholds();
 };
 
 // Dismiss flash banner
 const dismissFlashBanner = () => {
-  flashBanner.value = null;
+  flashBanner.value = undefined;
 };
 
 // Clear all notifications and reset alert system
@@ -134,21 +147,24 @@ const clearAllNotifications = () => {
       clearInterval(counter.intervalId);
     }
   });
-  
+
   // Reset all alert state
   alertCounters.value.clear();
   ignoredAlerts.value.clear();
-  flashBanner.value = null;
+  flashBanner.value = undefined;
   alerts.value = [];
   warnings.value = [];
-  
+
   console.log("All notifications cleared and alert system reset");
 };
 
 // Show alert with ignore functionality and repeat alerts
-const showThresholdAlert = (alert: { type: "error" | "warning", message: string }) => {
+const showThresholdAlert = (alert: {
+  type: "error" | "warning";
+  message: string;
+}) => {
   const alertKey = `${alert.type}:${alert.message}`;
-  
+
   // Check if this alert type is ignored
   if (ignoredAlerts.value.has(alertKey)) {
     return;
@@ -158,15 +174,15 @@ const showThresholdAlert = (alert: { type: "error" | "warning", message: string 
   if (!alertCounters.value.has(alertKey)) {
     alertCounters.value.set(alertKey, { count: 0 });
   }
-  
+
   const counter = alertCounters.value.get(alertKey)!;
-  
+
   const showSingleAlert = (alertNumber: number) => {
     const result = confirm(
       `🚨 BYTECAP THRESHOLD ALERT (${alertNumber}/3)\n\n` +
-      `${alert.message}\n\n` +
-      `This is alert ${alertNumber} of 3. ${alertNumber < 3 ? 'Next alert in 1 minute.' : 'This is the final alert.'}\n\n` +
-      `Click OK to acknowledge, or CANCEL to ignore all future alerts of this type.`
+        `${alert.message}\n\n` +
+        `This is alert ${alertNumber} of 3. ${alertNumber < 3 ? "Next alert in 1 minute." : "This is the final alert."}\n\n` +
+        `Click OK to acknowledge, or CANCEL to ignore all future alerts of this type.`,
     );
 
     if (!result) {
@@ -185,7 +201,7 @@ const showThresholdAlert = (alert: { type: "error" | "warning", message: string 
     if (alertNumber === 1) {
       flashBanner.value = {
         type: alert.type,
-        message: alert.message
+        message: alert.message,
       };
     }
   };
@@ -198,8 +214,10 @@ const showThresholdAlert = (alert: { type: "error" | "warning", message: string 
   if (!ignoredAlerts.value.has(alertKey)) {
     counter.intervalId = setInterval(() => {
       if (ignoredAlerts.value.has(alertKey)) {
-        clearInterval(counter.intervalId);
-        delete counter.intervalId;
+        if (counter.intervalId) {
+          clearInterval(counter.intervalId);
+          delete counter.intervalId;
+        }
         return;
       }
 
@@ -207,8 +225,10 @@ const showThresholdAlert = (alert: { type: "error" | "warning", message: string 
       showSingleAlert(counter.count);
 
       if (counter.count >= 3) {
-        clearInterval(counter.intervalId);
-        delete counter.intervalId;
+        if (counter.intervalId) {
+          clearInterval(counter.intervalId);
+          delete counter.intervalId;
+        }
         console.log(`Completed all 3 alerts for: ${alertKey}`);
       }
     }, 60000); // 1 minute intervals
@@ -218,7 +238,7 @@ const showThresholdAlert = (alert: { type: "error" | "warning", message: string 
 // Load data on component mount
 onMounted(() => {
   console.log("Frontend mounted, calling backend...");
-  
+
   // Set up event listeners for backend alerts
   sdk.backend.onEvent("bytecap:threshold-alert", (alert) => {
     showThresholdAlert(alert);
@@ -227,7 +247,7 @@ onMounted(() => {
   sdk.backend.onEvent("bytecap:file-scan-complete", (summary) => {
     scanSummary.value = summary;
   });
-  
+
   loadWorkspaceFiles();
 });
 </script>
@@ -243,11 +263,11 @@ onMounted(() => {
 
       <!-- Flash Banner -->
       <div v-if="flashBanner" class="mb-4">
-        <Message 
+        <Message
           :severity="flashBanner.type === 'error' ? 'error' : 'warn'"
           :closable="true"
-          @close="dismissFlashBanner"
           class="animate-pulse"
+          @close="dismissFlashBanner"
         >
           <strong>🚨 THRESHOLD ALERT:</strong> {{ flashBanner.message }}
         </Message>
@@ -277,7 +297,7 @@ onMounted(() => {
                   :min="1"
                   :max="20480"
                   class="w-20"
-                  style="text-align: center;"
+                  style="text-align: center"
                 />
                 <span class="text-sm text-gray-500">MB</span>
               </div>
@@ -290,59 +310,54 @@ onMounted(() => {
             <!-- Warning Options -->
             <div>
               <div class="flex items-center mb-2">
-                <Checkbox
-                  v-model="enableWarnings"
-                  binary
-                />
-                <label class="ml-2 text-sm font-medium">Enable Additional Warnings</label>
+                <Checkbox v-model="enableWarnings" binary />
+                <label class="ml-2 text-sm font-medium"
+                  >Enable Additional Warnings</label
+                >
               </div>
 
               <div v-if="enableWarnings" class="ml-6 space-y-2">
                 <div class="flex items-center">
-                  <Checkbox
-                    v-model="warningAt75Percent"
-                    binary
-                  />
-                  <label class="ml-2 text-sm">Warning at 75% of threshold</label>
+                  <Checkbox v-model="warningAt75Percent" binary />
+                  <label class="ml-2 text-sm"
+                    >Warning at 75% of threshold</label
+                  >
                 </div>
                 <div class="flex items-center">
-                  <Checkbox
-                    v-model="warningAt90Percent"
-                    binary
-                  />
-                  <label class="ml-2 text-sm">Warning at 90% of threshold</label>
+                  <Checkbox v-model="warningAt90Percent" binary />
+                  <label class="ml-2 text-sm"
+                    >Warning at 90% of threshold</label
+                  >
                 </div>
               </div>
             </div>
-
 
             <!-- Actions -->
             <div class="flex gap-2">
               <Button
                 label="Apply Settings"
-                @click="applySettings"
                 :loading="isLoading"
                 icon="pi pi-check"
                 severity="success"
+                @click="applySettings"
               />
               <Button
                 label="Refresh Files"
-                @click="onRefreshClick"
                 :loading="isLoading"
                 icon="pi pi-refresh"
+                @click="onRefreshClick"
               />
               <Button
                 label="Clear Alerts"
-                @click="clearAllNotifications"
                 icon="pi pi-times-circle"
                 severity="secondary"
                 outlined
+                @click="clearAllNotifications"
               />
             </div>
           </div>
         </template>
       </Card>
-
 
       <!-- Alerts and Warnings -->
       <div v-if="alerts.length > 0 || warnings.length > 0" class="space-y-2">
@@ -357,17 +372,29 @@ onMounted(() => {
       <!-- Caido Files Summary -->
       <Card v-if="workspaceFiles.caidoFiles.length > 0">
         <template #title>
-          📁 Caido Project Files ({{ workspaceFiles.caidoFiles.length }}) - Combined Size: {{ workspaceFiles.caidoTotalSizeFormatted }}
+          📁 Caido Project Files ({{ workspaceFiles.caidoFiles.length }}) -
+          Combined Size: {{ workspaceFiles.caidoTotalSizeFormatted }}
         </template>
         <template #content>
-          <div class="p-3 mb-4" style="border: 1px solid var(--surface-border); border-radius: 6px;">
-            <p class="mb-2" style="font-size: 14px;">
-              <strong>Note:</strong> These .caido files are monitored as a combined unit for size threshold checks.
+          <div
+            class="p-3 mb-4"
+            style="border: 1px solid var(--surface-border); border-radius: 6px"
+          >
+            <p class="mb-2" style="font-size: 14px">
+              <strong>Note:</strong> These .caido files are monitored as a
+              combined unit for size threshold checks.
             </p>
             <div class="space-y-1">
-              <div v-for="file in workspaceFiles.caidoFiles" :key="file.name" class="flex justify-between" style="font-size: 14px;">
+              <div
+                v-for="file in workspaceFiles.caidoFiles"
+                :key="file.name"
+                class="flex justify-between"
+                style="font-size: 14px"
+              >
                 <span class="font-mono">{{ file.name }}</span>
-                <span class="font-medium" style="color: var(--primary-color);">{{ file.sizeFormatted }}</span>
+                <span class="font-medium" style="color: var(--primary-color)">{{
+                  file.sizeFormatted
+                }}</span>
               </div>
             </div>
           </div>
@@ -377,7 +404,8 @@ onMounted(() => {
       <!-- All Files List -->
       <Card>
         <template #title>
-          All Workspace Files ({{ workspaceFiles.files.length }}) - Total: {{ workspaceFiles.totalSizeFormatted }}
+          All Workspace Files ({{ workspaceFiles.files.length }}) - Total:
+          {{ workspaceFiles.totalSizeFormatted }}
         </template>
         <template #content>
           <DataTable
@@ -385,16 +413,24 @@ onMounted(() => {
             :loading="isLoading"
             paginator
             :rows="20"
-            :showGridlines="true"
-            :stripedRows="true"
+            :show-gridlines="true"
+            :striped-rows="true"
           >
             <Column field="name" header="File Name" sortable>
               <template #body="slotProps">
-                <span :class="[
-                  'font-mono text-sm',
-                  slotProps.data.name.endsWith('.caido') ? 'text-blue-600 font-semibold' : ''
-                ]">
-                  <span v-if="slotProps.data.name.endsWith('.caido')" class="mr-1">📁</span>
+                <span
+                  :class="[
+                    'font-mono text-sm',
+                    slotProps.data.name.endsWith('.caido')
+                      ? 'text-blue-600 font-semibold'
+                      : '',
+                  ]"
+                >
+                  <span
+                    v-if="slotProps.data.name.endsWith('.caido')"
+                    class="mr-1"
+                    >📁</span
+                  >
                   {{ slotProps.data.name }}
                 </span>
               </template>
@@ -404,10 +440,16 @@ onMounted(() => {
                 <span
                   :class="[
                     'font-medium',
-                    slotProps.data.size >= (thresholdMB * 1024 * 1024) ? 'text-red-600' :
-                    (enableWarnings && slotProps.data.size >= (thresholdMB * 1024 * 1024 * 0.9)) ? 'text-orange-600' :
-                    (enableWarnings && slotProps.data.size >= (thresholdMB * 1024 * 1024 * 0.75)) ? 'text-yellow-600' :
-                    'text-green-600'
+                    slotProps.data.size >= thresholdMB * 1024 * 1024
+                      ? 'text-red-600'
+                      : enableWarnings &&
+                          slotProps.data.size >= thresholdMB * 1024 * 1024 * 0.9
+                        ? 'text-orange-600'
+                        : enableWarnings &&
+                            slotProps.data.size >=
+                              thresholdMB * 1024 * 1024 * 0.75
+                          ? 'text-yellow-600'
+                          : 'text-green-600',
                   ]"
                 >
                   {{ slotProps.data.sizeFormatted }}
@@ -417,25 +459,41 @@ onMounted(() => {
             <Column header="Status">
               <template #body="slotProps">
                 <!-- Special handling for .caido files -->
-                <span v-if="slotProps.data.name.endsWith('.caido')"
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                <span
+                  v-if="slotProps.data.name.endsWith('.caido')"
+                  class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                >
                   📁 Part of Combined Check
                 </span>
                 <!-- Regular file threshold checks -->
-                <span v-else-if="slotProps.data.size >= (thresholdMB * 1024 * 1024)"
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                <span
+                  v-else-if="slotProps.data.size >= thresholdMB * 1024 * 1024"
+                  class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800"
+                >
                   Exceeds Threshold
                 </span>
-                <span v-else-if="enableWarnings && slotProps.data.size >= (thresholdMB * 1024 * 1024 * 0.9)"
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                <span
+                  v-else-if="
+                    enableWarnings &&
+                    slotProps.data.size >= thresholdMB * 1024 * 1024 * 0.9
+                  "
+                  class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800"
+                >
                   90% Warning
                 </span>
-                <span v-else-if="enableWarnings && slotProps.data.size >= (thresholdMB * 1024 * 1024 * 0.75)"
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                <span
+                  v-else-if="
+                    enableWarnings &&
+                    slotProps.data.size >= thresholdMB * 1024 * 1024 * 0.75
+                  "
+                  class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800"
+                >
                   75% Warning
                 </span>
-                <span v-else
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                <span
+                  v-else
+                  class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800"
+                >
                   OK
                 </span>
               </template>
