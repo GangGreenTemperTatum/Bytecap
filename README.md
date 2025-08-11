@@ -27,6 +27,8 @@ _Caido plugin to cap and split workspace files by size — ideal for proxy and l
   - [Quick Start](#quick-start)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
+    - [Method 1 - Install latest release:](#method-1---install-latest-release)
+    - [Method 2 - Install from source:](#method-2---install-from-source)
     - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -46,6 +48,13 @@ Bytecap is a Caido plugin that helps you monitor and manage workspace file sizes
 - Node.js and pnpm (for development)
 
 ### Installation
+
+### Method 1 - Install latest release:
+
+1. Download the [latest release](https://github.com/GangGreenTemperTatum/Bytecap/releases) from GitHub.
+2. In Caido, go to **Plugins** > **Install Package** and select the downloaded file.
+
+### Method 2 - Install from source:
 
 1. **Clone the repository:**
    ```bash
