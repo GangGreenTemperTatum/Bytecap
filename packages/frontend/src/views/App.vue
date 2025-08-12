@@ -30,11 +30,37 @@ interface DirectoryInfo {
 // Retrieve the SDK instance to interact with the backend
 const sdk = useSDK();
 
-// Reactive state
-const thresholdMB = ref(10);
-const enableWarnings = ref(true);
-const warningAt75Percent = ref(true);
-const warningAt90Percent = ref(true);
+// Load settings from localStorage with defaults
+const loadSettings = () => {
+  const saved = localStorage.getItem('bytecap-settings');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+};
+
+// Save settings to localStorage
+const saveSettings = () => {
+  const settings = {
+    thresholdMB: thresholdMB.value,
+    enableWarnings: enableWarnings.value,
+    warningAt75Percent: warningAt75Percent.value,
+    warningAt90Percent: warningAt90Percent.value,
+  };
+  localStorage.setItem('bytecap-settings', JSON.stringify(settings));
+};
+
+const savedSettings = loadSettings();
+
+// Reactive state with persisted values
+const thresholdMB = ref(savedSettings.thresholdMB ?? 10);
+const enableWarnings = ref(savedSettings.enableWarnings ?? true);
+const warningAt75Percent = ref(savedSettings.warningAt75Percent ?? true);
+const warningAt90Percent = ref(savedSettings.warningAt90Percent ?? true);
 const workspaceFiles = ref<DirectoryInfo>({
   files: [],
   totalSize: 0,
@@ -127,6 +153,9 @@ const onRefreshClick = async () => {
 
 // Apply settings and check thresholds manually
 const applySettings = async () => {
+  // Save settings to localStorage
+  saveSettings();
+
   // Clear any existing notifications first
   clearAllNotifications();
 
@@ -246,6 +275,12 @@ onMounted(() => {
 
   sdk.backend.onEvent("bytecap:file-scan-complete", (summary) => {
     scanSummary.value = summary;
+  });
+
+  // Listen for project changes and refresh data
+  sdk.backend.onEvent("bytecap:project-changed", (data) => {
+    console.log(`Project changed to: ${data.projectName}`);
+    loadWorkspaceFiles();
   });
 
   loadWorkspaceFiles();
