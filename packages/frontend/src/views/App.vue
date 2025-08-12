@@ -248,6 +248,12 @@ onMounted(() => {
     scanSummary.value = summary;
   });
 
+  // Listen for project changes and automatically refresh
+  sdk.projects.onCurrentChanged(() => {
+    console.log("Project changed, refreshing workspace files...");
+    loadWorkspaceFiles();
+  });
+
   loadWorkspaceFiles();
 });
 </script>
