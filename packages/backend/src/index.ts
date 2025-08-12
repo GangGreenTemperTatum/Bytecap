@@ -14,6 +14,10 @@ export type BackendEvents = DefineEvents<{
     totalSize: string;
     caidoTotalSize: string;
   }) => void;
+  "bytecap:project-changed": (data: {
+    projectName: string | null;
+    projectId: string | null;
+  }) => void;
 }>;
 
 interface FileInfo {
@@ -312,5 +316,19 @@ export function init(sdk: BytecapBackendSDK) {
   sdk.console.log("Bytecap backend starting...");
   sdk.api.register("getWorkspaceFiles", getWorkspaceFiles);
   sdk.api.register("checkFileSizeThresholds", checkFileSizeThresholds);
+
+  // Listen for project changes
+  sdk.events.onProjectChange((sdk, project) => {
+    const projectName = project?.getName() ?? null;
+    const projectId = project?.getId() ?? null;
+    sdk.console.log(`Project changed to: ${projectName}`);
+    
+    // Send event to frontend to refresh data
+    sdk.api.send("bytecap:project-changed", {
+      projectName,
+      projectId
+    });
+  });
+
   sdk.console.log("Bytecap backend initialized successfully");
 }

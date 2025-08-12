@@ -248,9 +248,9 @@ onMounted(() => {
     scanSummary.value = summary;
   });
 
-  // Listen for project changes and automatically refresh
-  sdk.projects.onCurrentChanged(() => {
-    console.log("Project changed, refreshing workspace files...");
+  // Listen for project changes and refresh data
+  sdk.backend.onEvent("bytecap:project-changed", (data) => {
+    console.log(`Project changed to: ${data.projectName}`);
     loadWorkspaceFiles();
   });
 
