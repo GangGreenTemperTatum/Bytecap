@@ -13,10 +13,12 @@ _Caido plugin to cap and split workspace files by size — ideal for proxy and l
 [Report Bug](https://github.com/GangGreenTemperTatum/Bytecap/issues) •
 [Request Feature](https://github.com/GangGreenTemperTatum/Bytecap/issues)
 
-![Bytecheck Panel](./public/images/bytecheck-panel.png)
-*Bytecheck*
+![bytecap Panel](./public/images/bytecap-panel.png)
+*bytecap*
 
-<!-- TODO Bytecap is now available via the Caido Plugin Library! 🥳 Bytecap has been [submitted to the Caido Plugin Library](https://github.com/caido/store/pull/24) and is currently under review. Once approved, it will be available for installation directly from the Caido interface. In the meantime, you can still install it manually by following the instructions below. -->
+Bytecap is now available via the [Caido Plugin Library](https://caido.io/plugins)! 🥳 Bytecap was [submitted to the Caido Plugin Library](https://github.com/caido/store/pull/41) and is approved, it will be available for installation directly from the Caido plugin store page.
+
+![https://caido.io/plugins](./public/images/caido-plugin-store.png)
 
 </div>
 
@@ -27,8 +29,8 @@ _Caido plugin to cap and split workspace files by size — ideal for proxy and l
   - [Quick Start](#quick-start)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
-    - [Method 1 - Install latest release:](#method-1---install-latest-release)
-    - [Method 2 - Install from source:](#method-2---install-from-source)
+    - [Method 1 - Install directly in Caido (recommended):](#method-1---install-directly-in-caido-recommended)
+    - [Method 2 - Install from source (without auto-updates):](#method-2---install-from-source-without-auto-updates)
     - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -49,12 +51,13 @@ Bytecap is a Caido plugin that helps you monitor and manage workspace file sizes
 
 ### Installation
 
-### Method 1 - Install latest release:
+### Method 1 - Install directly in Caido (recommended):
 
-1. Download the [latest release](https://github.com/GangGreenTemperTatum/Bytecap/releases) from GitHub.
-2. In Caido, go to **Plugins** > **Install Package** and select the downloaded file.
+1. Open Caido, navigate to the `Plugins` sidebar page and then to the `Community Store` tab
+2. Find `Bytecap` and click `Install`
+3. Done! 🎉
 
-### Method 2 - Install from source:
+### Method 2 - Install from source (without auto-updates):
 
 1. **Clone the repository:**
    ```bash
@@ -95,11 +98,11 @@ Bytecap is a Caido plugin that helps you monitor and manage workspace file sizes
    - Check color-coded status indicators
    - Review alerts and warnings for files exceeding threshold
 
-![Bytecheck Notification](./public/images/bytecheck-popup-alert-1.png)
-*Bytecheck notification*
+![bytecap Notification](./public/images/bytecap-popup-alert-1.png)
+*bytecap notification*
 
-![Bytecheck Notification](./public/images/bytecheck-popup-alert-2.png)
-*Bytecheck notification*
+![bytecap Notification](./public/images/bytecap-popup-alert-2.png)
+*bytecap notification*
 
 ## Contributing
 
