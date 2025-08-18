@@ -40,6 +40,8 @@ Bytecap is now available via the [Caido Plugin Library](https://caido.io/plugins
 
 Bytecap is a Caido plugin that helps you monitor and manage workspace file sizes. Perfect for scenarios where you need to upload proxy/logs or data files with strict size limits (IE certain pentesting platforms), Bytecap provides real-time file size monitoring with configurable thresholds and warnings.
 
+> Come [join](https://discord.com/invite/Xkafzujmuh) the **awesome** Caido discord channel and come speak to me about Bytecap in it's [dedicated channel](https://discord.com/channels/843915806748180492/1407063905511145653)!
+
 ---
 
 ## Quick Start
