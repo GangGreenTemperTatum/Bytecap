@@ -42,6 +42,8 @@ Bytecap is a Caido plugin that helps you monitor and manage workspace file sizes
 
 > Come [join](https://discord.com/invite/Xkafzujmuh) the **awesome** Caido discord channel and come speak to me about Bytecap in it's [dedicated channel](https://discord.com/channels/843915806748180492/1407063905511145653)!
 
+**Warning**: Bytecap has been reported as not working well on Windows systems (still under investigation). It is recommended to use Bytecap on Linux or macOS for the best experience.
+
 ---
 
 ## Quick Start
