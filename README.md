@@ -4,6 +4,8 @@
 
 _Caido plugin to cap and split workspace files by size — ideal for proxy and log file uploads with file size limits_
 
+Brought to you by [@GangGreenTemperTatum](https://github.com/GangGreenTemperTatum), proud ambassador of the [Caido](https://caido.io/ambassadors) community!
+
 [![GitHub forks](https://img.shields.io/github/forks/GangGreenTemperTatum/Bytecap?style=social)](https://github.com/GangGreenTemperTatum/Bytecap/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/GangGreenTemperTatum/Bytecap)](https://github.com/GangGreenTemperTatum/Bytecap/issues)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/GangGreenTemperTatum/Bytecap)](https://github.com/GangGreenTemperTatum/Bytecap/releases)
