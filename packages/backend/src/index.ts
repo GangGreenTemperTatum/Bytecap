@@ -1,4 +1,4 @@
-import { accessSync, constants, readdirSync, statSync } from "fs";
+import { access, constants, readdir, stat } from "fs/promises";
 import os from "os";
 
 import type { DefineAPI, DefineEvents, SDK } from "caido:plugin";
@@ -40,10 +40,10 @@ const formatBytes = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-// Check if path exists using accessSync
-const pathExists = (path: string): boolean => {
+// Check if path exists using async access
+const pathExists = async (path: string): Promise<boolean> => {
   try {
-    accessSync(path, constants.F_OK);
+    await access(path, constants.F_OK);
     return true;
   } catch {
     return false;
@@ -113,11 +113,12 @@ const getWorkspaceFiles = async (
       }
       const caidoProjectsDir = getCaidoProjectsDir();
       const projectDir = `${caidoProjectsDir}/${project.getId()}`;
+      const projectDirExists = await pathExists(projectDir);
       sdk.console.log(
-        `Caido projects dir: ${caidoProjectsDir} exists: ${pathExists(projectDir)}`,
+        `Caido projects dir: ${caidoProjectsDir} exists: ${projectDirExists}`,
       );
 
-      if (pathExists(projectDir)) {
+      if (projectDirExists) {
         path = projectDir;
       } else {
         // Fallback to current working directory
@@ -131,7 +132,7 @@ const getWorkspaceFiles = async (
     // Debug logging
 
     // Check if path exists
-    if (!pathExists(path)) {
+    if (!(await pathExists(path))) {
       return {
         files: [],
         totalSize: 0,
@@ -147,9 +148,12 @@ const getWorkspaceFiles = async (
     let totalSize = 0;
 
     // Recursive function to scan directories
-    const scanDirectory = (dirPath: string, relativePath: string = "") => {
+    const scanDirectory = async (
+      dirPath: string,
+      relativePath: string = "",
+    ) => {
       try {
-        const entries = readdirSync(dirPath, { withFileTypes: true });
+        const entries = await readdir(dirPath, { withFileTypes: true });
 
         for (const entry of entries) {
           const fullPath = `${dirPath}/${entry.name}`;
@@ -159,7 +163,7 @@ const getWorkspaceFiles = async (
 
           if (entry.isFile()) {
             try {
-              const stats = statSync(fullPath);
+              const stats = await stat(fullPath);
               const size = stats.size;
 
               files.push({
@@ -174,7 +178,7 @@ const getWorkspaceFiles = async (
             }
           } else if (entry.isDirectory()) {
             // Recursively scan subdirectories
-            scanDirectory(fullPath, displayName);
+            await scanDirectory(fullPath, displayName);
           }
         }
       } catch (scanError) {
@@ -183,7 +187,7 @@ const getWorkspaceFiles = async (
     };
 
     // Start scanning from the main directory
-    scanDirectory(path);
+    await scanDirectory(path);
 
     files.sort((a, b) => b.size - a.size);
 
