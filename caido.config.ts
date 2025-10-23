@@ -12,7 +12,7 @@ export default defineConfig({
   id,
   name: "Bytecap",
   description: "Caido plugin to cap and split workspace files by size — ideal for log uploads with file size limits",
-  version: "1.0.1",
+  version: "1.0.2",
   author: {
     name: "Ads Dawson",
     email: "ads@offsecmoose.xyz",
