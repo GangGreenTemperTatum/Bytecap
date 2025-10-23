@@ -1,5 +1,4 @@
 import { access, constants, readdir, stat } from "fs/promises";
-import os from "os";
 
 import type { DefineAPI, DefineEvents, SDK } from "caido:plugin";
 
@@ -32,6 +31,16 @@ interface DirectoryInfo {
   caidoTotalSizeFormatted: string;
 }
 
+const EMPTY_INFO: DirectoryInfo = {
+  files: [],
+  totalSize: 0,
+  totalSizeFormatted: "0 B",
+  scanPath: "",
+  caidoFiles: [],
+  caidoTotalSize: 0,
+  caidoTotalSizeFormatted: "0 B",
+};
+
 const formatBytes = (bytes: number): string => {
   if (bytes === 0) return "0 B";
   const k = 1024;
@@ -50,107 +59,31 @@ const pathExists = async (path: string): Promise<boolean> => {
   }
 };
 
-// Get the Caido projects directory based on OS
-const getCaidoProjectsDir = (): string => {
-  const platform = os.platform();
-  const home = os.homedir();
-
-  switch (platform) {
-    case "darwin": // macOS
-      return `${home}/Library/Application Support/io.caido.Caido/projects`;
-    case "linux":
-      return `${home}/.local/share/caido/projects`;
-    case "win32":
-      return `${home}/caido/Caido/data/projects`;
-    default:
-      return `${home}/projects`;
-  }
-};
-
-// Expand path with tilde and handle spaces
-const expandPath = (inputPath: string): string => {
-  let path = inputPath.trim();
-
-  // Handle tilde expansion
-  if (path.startsWith("~")) {
-    const home = os.homedir();
-    path = path.replace("~", home);
-  }
-
-  // Remove backslashes used to escape spaces (for copy-paste from terminal)
-  path = path.replace(/\\\\ /g, " ");
-
-  return path;
-};
-
 const getWorkspaceFiles = async (
-  sdk: BytecapBackendSDK,
-  workspacePath?: string,
+  sdk: BytecapBackendSDK
 ): Promise<DirectoryInfo> => {
   try {
-    let path: string;
-
-    if (
-      workspacePath !== null &&
-      workspacePath !== undefined &&
-      workspacePath.length > 0
-    ) {
-      path = expandPath(workspacePath);
-      sdk.console.log(`Using custom path: ${path}`);
-    } else {
-      // Try to use the Caido projects directory
-      const project = await sdk.projects.getCurrent();
-      if (!project) {
-        return {
-          files: [],
-          totalSize: 0,
-          totalSizeFormatted: "0 B",
-          scanPath: "",
-          caidoFiles: [],
-          caidoTotalSize: 0,
-          caidoTotalSizeFormatted: "0 B",
-        };
-      }
-      const caidoProjectsDir = getCaidoProjectsDir();
-      const projectDir = `${caidoProjectsDir}/${project.getId()}`;
-      const projectDirExists = await pathExists(projectDir);
-      sdk.console.log(
-        `Caido projects dir: ${caidoProjectsDir} exists: ${projectDirExists}`,
-      );
-
-      if (projectDirExists) {
-        path = projectDir;
-      } else {
-        // Fallback to current working directory
-        path = sdk.meta.path();
-        sdk.console.log(`Fallback to plugin path: ${path}`);
-      }
+    // Get current project directory
+    const project = await sdk.projects.getCurrent();
+    if (!project) {
+      return EMPTY_INFO;
+    }
+    const projectDir = project.getPath();
+    const projectDirExists = await pathExists(projectDir);
+    sdk.console.log(
+      `Caido project dir (${projectDir}) exists: ${projectDirExists}`
+    );
+    if (!projectDirExists) {
+      return EMPTY_INFO;
     }
 
-    sdk.console.log(`Final scan path: ${path}`);
-
-    // Debug logging
-
-    // Check if path exists
-    if (!(await pathExists(path))) {
-      return {
-        files: [],
-        totalSize: 0,
-        totalSizeFormatted: "0 B",
-        scanPath: path,
-        caidoFiles: [],
-        caidoTotalSize: 0,
-        caidoTotalSizeFormatted: "0 B",
-      };
-    }
-
+    // Scan directory
     const files: FileInfo[] = [];
     let totalSize = 0;
 
-    // Recursive function to scan directories
     const scanDirectory = async (
       dirPath: string,
-      relativePath: string = "",
+      relativePath: string = ""
     ) => {
       try {
         const entries = await readdir(dirPath, { withFileTypes: true });
@@ -187,7 +120,7 @@ const getWorkspaceFiles = async (
     };
 
     // Start scanning from the main directory
-    await scanDirectory(path);
+    await scanDirectory(projectDir);
 
     files.sort((a, b) => b.size - a.size);
 
@@ -195,14 +128,16 @@ const getWorkspaceFiles = async (
     const caidoFiles = files.filter((file) => file.name.endsWith(".caido"));
     const caidoTotalSize = caidoFiles.reduce(
       (total, file) => total + file.size,
-      0,
+      0
     );
 
     sdk.console.log(
-      `Files processed: ${files.length} Total size: ${formatBytes(totalSize)}`,
+      `Files processed: ${files.length} Total size: ${formatBytes(totalSize)}`
     );
     sdk.console.log(
-      `Caido files found: ${caidoFiles.length} Combined .caido size: ${formatBytes(caidoTotalSize)}`,
+      `Caido files found: ${
+        caidoFiles.length
+      } Combined .caido size: ${formatBytes(caidoTotalSize)}`
     );
 
     // Send file scan complete event
@@ -217,21 +152,13 @@ const getWorkspaceFiles = async (
       files,
       totalSize,
       totalSizeFormatted: formatBytes(totalSize),
-      scanPath: path,
+      scanPath: projectDir,
       caidoFiles,
       caidoTotalSize,
       caidoTotalSizeFormatted: formatBytes(caidoTotalSize),
     };
   } catch (error) {
-    return {
-      files: [],
-      totalSize: 0,
-      totalSizeFormatted: "0 B",
-      scanPath: "error",
-      caidoFiles: [],
-      caidoTotalSize: 0,
-      caidoTotalSizeFormatted: "0 B",
-    };
+    return EMPTY_INFO;
   }
 };
 
@@ -240,7 +167,7 @@ const checkFileSizeThresholds = (
   directoryInfo: DirectoryInfo,
   thresholdMB: number,
   enableWarnings: boolean,
-  warningPercentages: number[] = [75, 90],
+  warningPercentages: number[] = [75, 90]
 ): { alerts: string[]; warnings: string[] } => {
   const thresholdBytes = thresholdMB * 1024 * 1024;
   const alerts: string[] = [];
